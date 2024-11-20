@@ -1,0 +1,46 @@
+Extract the required information from this text:
+{{text}}
+
+Instructions:
+1. Correct any typos or inconsistencies in the provided text. Translate words to French if they are in another language.
+2. Dynamically calculate the "Date de naissance" based on the provided information:
+   - If the input mentions age (e.g., "5 years" or "3 ans"), subtract the number of years from the current year (2024) and format the birthdate as `01.01.<calculated year>`.
+   - If a partial date is provided (e.g., "Février 2020"), reformat it as `01.mm.yyyy`.
+   - If the input contains vague or irrelevant information about the date (e.g., "born 3 years ago"), infer the year but use `"01.01.<calculated year>"`.
+   - If the input lacks any date or age-related information, use `"-"` for the "Date de naissance" field.
+
+3. Extract all relevant information creatively and map it to the corresponding fields in the JSON structure:
+   - For example, if the input is "create a dog brun Tom chihuahua femelle neutered of 5.6kg of 5 years":
+     - `"Tom"` → `"Nom"`
+     - `"dog"` → `"Espèce": "Chien"`
+     - `"brun"` → `"Couleur": "Brun"`
+     - `"chihuahua"` → `"Race": "Chihuahua"`
+     - `"femelle"` → `"Sexe": "Femelle"`
+     - `"neutered"` → `"Stérilisation": "Y"`
+     - `"5.6kg"` → `"Poids": "5.6 kg"`
+     - `"5 years"` → `"Date de naissance": "01.01.2019"`
+
+4. Handle the "Stérilisation" field robustly:
+   - If the input explicitly mentions that the animal is neutered (e.g., "neutered", "castré", "spayed"), output `"Y"`.
+   - If the input explicitly mentions that the animal is not neutered (e.g., "not neutered", "non castré"), output `"N"`.
+   - If the input provides no relevant information about sterilization, output `"-"`.
+
+5. Handle missing or unavailable data:
+   - If any field (e.g., `"Nom"`, `"Espèce"`, `"Poids"`, etc.) is not provided in the input text, replace its value with `"-"`.
+   - Ensure no assumptions are made beyond what is explicitly stated in the input.
+
+6. Output the result as a strictly valid JSON object with no additional comments, explanations, or text. The structure must match the following exactly:
+
+{
+  "response": "The text provided seems to be in French and contains some typos. Here's the corrected information:",
+  "data": {
+    "Nom": "<name>",
+    "Espèce": "<specie>",
+    "Race": "<breed>",
+    "Date de naissance": "<birthdate in dd.mm.yyyy>",
+    "Sexe": "<sex>",
+    "Couleur": "<color>",
+    "Poids": "<weight>",
+    "Stérilisation": "<Y or N or ->"
+  }
+}
