@@ -10,7 +10,7 @@ if not api_key:
     raise ValueError("OpenAI API key is not set in the environment variable 'OPENAI_API_KEY'.")
 client = OpenAI(api_key=api_key)
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = 'dev'
 app.config['JSON_AS_ASCII'] = False
 
@@ -93,5 +93,5 @@ def process_data():
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 
-if _name_ == '__main__':
+if __name__ == '__main__':
     app.run(debug=True)
