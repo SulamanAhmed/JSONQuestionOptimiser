@@ -6,7 +6,6 @@
     <title>JSON Converter</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Custom styles for the page */
         body {
             background-color: #f8f9fa;
         }
@@ -46,13 +45,25 @@
             text-align: center;
         }
 
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
+        .output-box {
+            display: none;
+            margin-top: 20px;
         }
 
-        .download-btn {
-            display: none;
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        .card-body {
+            font-family: monospace;
+            white-space: pre-wrap;
         }
 
         footer {
@@ -61,31 +72,20 @@
             font-size: 0.9rem;
             color: #6c757d;
         }
-
-        footer a {
-            text-decoration: none;
-            color: #0d6efd;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Question Optimiser</h1>
+        <h1 class="text-center mb-4">AI Question Optimizer</h1>
 
-        <!-- Flash Messages -->
         <div id="flashMessages"></div>
 
-        <!-- Form -->
         <form id="dataForm">
             <div class="mb-3">
                 <label for="dataInput" class="form-label">Enter Data</label>
                 <textarea name="data_text" id="dataInput" rows="8" class="form-control" placeholder="Paste your data here..." required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary w-100" id="submitButton">Submit</button>
+            <button type="submit" class="btn btn-primary w-100">Submit</button>
             <div class="spinner" id="spinner">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
@@ -94,41 +94,46 @@
             </div>
         </form>
 
-        <!-- Download Button -->
-        <div class="mt-4 text-center">
-            <a href="/download" class="btn btn-success download-btn w-100" id="downloadButton">Download Output File</a>
+        <div class="output-box" id="outputBox">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Generated Output</span>
+                    <button class="btn btn-sm btn-outline-primary" id="copyButton">Copy</button>
+                </div>
+                <div class="card-body" id="outputContent"></div>
+            </div>
         </div>
     </div>
 
     <footer>
-        <p>&copy; 2024 Digimidi. All rights reserved. </p>
+        <p>&copy; 2024 Digimidi All Rights Reserved. </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("dataForm");
             const spinner = document.getElementById("spinner");
-            const downloadButton = document.getElementById("downloadButton");
+            const outputBox = document.getElementById("outputBox");
+            const outputContent = document.getElementById("outputContent");
+            const copyButton = document.getElementById("copyButton");
             const flashMessagesContainer = document.getElementById("flashMessages");
 
             form.addEventListener("submit", async (event) => {
                 event.preventDefault();
 
-                // Hide the download button
-                downloadButton.style.display = "none";
+                // Hide the output box
+                outputBox.style.display = "none";
 
-                // Clear existing flash messages
+                // Clear flash messages
                 flashMessagesContainer.innerHTML = "";
 
-                // Show the spinner
+                // Show spinner
                 spinner.style.display = "block";
 
                 const formData = new FormData();
                 formData.append("data_text", document.getElementById("dataInput").value);
 
                 try {
-                    // Submit the form via AJAX
                     const response = await fetch("/process", {
                         method: "POST",
                         body: formData,
@@ -141,36 +146,29 @@
 
                     const data = await response.json();
 
-                    // Display flash messages if present
-                    if (data.flash) {
-                        renderFlashMessages(data.flash);
-                    }
-
-                    if (data.download_url) {
+                    if (data.response) {
                         spinner.style.display = "none";
-                        downloadButton.style.display = "block";
-                    } else {
-                        throw new Error("Unexpected response format.");
+                        outputContent.textContent = JSON.stringify(data.response, null, 4);
+                        outputBox.style.display = "block";
+                    } else if (data.error) {
+                        throw new Error(data.error);
                     }
                 } catch (error) {
                     console.error("Error:", error);
-                    renderFlashMessages([{ category: "danger", message: error.message }]);
+                    flashMessagesContainer.innerHTML = `
+                        <div class="alert alert-danger mt-3">${error.message}</div>
+                    `;
                     spinner.style.display = "none";
                 }
             });
 
-            function renderFlashMessages(messages) {
-                messages.forEach(({ category, message }) => {
-                    const alertDiv = document.createElement("div");
-                    alertDiv.className = `alert alert-${category} alert-dismissible fade show mt-3`;
-                    alertDiv.role = "alert";
-                    alertDiv.innerHTML = `
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    `;
-                    flashMessagesContainer.appendChild(alertDiv);
+            copyButton.addEventListener("click", () => {
+                navigator.clipboard.writeText(outputContent.textContent).then(() => {
+                    alert("Output copied to clipboard!");
+                }).catch((error) => {
+                    console.error("Copy failed:", error);
                 });
-            }
+            });
         });
     </script>
 </body>

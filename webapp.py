@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_file, redirect, url_for, flash
+from flask import Flask, request, jsonify, render_template
 from openai import OpenAI
 import os
 import json
@@ -10,9 +10,9 @@ if not api_key:
     raise ValueError("OpenAI API key is not set in the environment variable 'OPENAI_API_KEY'.")
 client = OpenAI(api_key=api_key)
 
-app = Flask(__name__)
-app.secret_key = 'dev'  # Required for flash messages
-app.config['JSON_AS_ASCII'] = False  # Disable ASCII encoding for JSON responses
+app = Flask(_name_)
+app.secret_key = 'dev'
+app.config['JSON_AS_ASCII'] = False
 
 
 def fix_and_parse_json(malformed_json_str):
@@ -50,13 +50,10 @@ def process_data():
         return jsonify({'error': 'Data input is required.'}), 400
 
     try:
-        # Read the contents of the pre-uploaded prompt.txt
         with open('prompt.txt', 'r', encoding='utf-8') as prompt_file:
             prompt_template = prompt_file.read()
 
-        # Format the prompt with the user input
         prompt = prompt_template.replace("{{text}}", user_input)
-
         max_retries = 3
         attempt = 0
         response_data = None
@@ -90,26 +87,11 @@ def process_data():
                 "raw_response": result_text if 'result_text' in locals() else "No response available."
             }
 
-        # Save the response to a JSON file
-        output_path = 'output.json'
-        with open(output_path, 'w', encoding='utf-8') as output_file:
-            json.dump(response_data, output_file, ensure_ascii=False, indent=4)
-
-        # Return JSON with the download link
-        return jsonify({
-            'message': 'Processing complete',
-            'download_url': '/download'
-        })
+        return jsonify(response_data)
 
     except Exception as e:
         return jsonify({'error': 'An unexpected error occurred', 'details': str(e)}), 500
 
 
-@app.route('/download')
-def download_file():
-    # Serve the JSON file
-    return send_file('output.json', as_attachment=True)
-
-
-if __name__ == '__main__':
+if _name_ == '__main__':
     app.run(debug=True)
